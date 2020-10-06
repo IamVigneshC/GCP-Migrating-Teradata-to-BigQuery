@@ -248,7 +248,7 @@ This bucket will be used by the BigQuery Data Transfer Service as a staging area
 To make sure the environment variables you need are still defined enter the following commands in Cloud Shell.
 
 ### Set the PROJECT variable to the Project ID
-export PROJECT=$(gcloud config get-value project)
+ ` export PROJECT=$(gcloud config get-value project) `
 
 ### Set TD2BQ_SVC_ACCOUNT to the migration service account
 export TD2BQ_SVC_ACCOUNT=`gcloud iam service-accounts list \
@@ -257,7 +257,7 @@ export TD2BQ_SVC_ACCOUNT=`gcloud iam service-accounts list \
 To create a cloud storage bucket enter the following in Cloud Shell:
 
 ### Use gsutil to create the bucket
-gsutil mb -c regional -l us-central1 gs://${PROJECT}-td2bq
+` gsutil mb -c regional -l us-central1 gs://${PROJECT}-td2bq `
 
 Create the BigQuery dataset
 This is the dataset that will be used for the migrated data from Teradata.
@@ -266,7 +266,7 @@ Note: The dataset's multi-region location should contain the Cloud Storage bucke
 To create the BigQuery dataset enter the following in the Cloud Shell:
 
 ### Use the bq utility to create the dataset
-bq mk --location=US td2bq
+` bq mk --location=US td2bq `
 
 You can also check the schema on your Teradata instance.
 
@@ -275,14 +275,14 @@ Switch back to the the Teradata compute instance SSH Window.
 To save the nested Teradata QEMU VM IP address in an environment variable enter the following in the SSH Window:
 
 ### Get the Teradata VM IP
-TERA_IP=$(sudo virsh net-dhcp-leases default | sed -n 3p | awk '{print $5}' | cut -f1 -d/)
+` TERA_IP=$(sudo virsh net-dhcp-leases default | sed -n 3p | awk '{print $5}' | cut -f1 -d/) `
 
 This puts the address of the nested QEMU virtual machine where the Teradata data warehouse is actually running into an environment variable called TERA_IP.
 
 To launch bteq and log on to Teradata, enter the following in the SSH Window:
 
 ### Use the BTEQ query utility
-bteq .LOGON $TERA_IP/dbc,dbc
+` bteq .LOGON $TERA_IP/dbc,dbc `
 
 Warning: You may see the following error depending on how quickly you have run through the lab up to this point. You can proceed with the subsequent query even if you see this:
 
@@ -292,14 +292,14 @@ However, if this error appears to persist, and the query does not work, you are 
 
 Enter the following SQL:
 
-SELECT * FROM DBC.Tables WHERE DatabaseName ='tpch';
+` SELECT * FROM DBC.Tables WHERE DatabaseName ='tpch'; `
 
 Note: All Teradata SQL commands must end with a semicolon.
 
 
 Enter the following SQL:
 
-SELECT TOP 100 * FROM tpch.supplier ORDER BY s_suppkey;
+` SELECT TOP 100 * FROM tpch.supplier ORDER BY s_suppkey; `
 
 
 To exit the BTEQ utility:
@@ -315,18 +315,19 @@ You configure a BigQuery Data Transfer Service resource that the transfer agent 
 
 Enter the following commands in the Cloud Shell to display the configuration values you will use when configuring the BigQuery Data Transfer Service:
 
-export PROJECT=$(gcloud config get-value project)
+` export PROJECT=$(gcloud config get-value project) `
+
 ### Print the project, bucket, dataset and service account names
-echo Project ID: $PROJECT
+` echo Project ID: $PROJECT `
 
 ### Storage Bucket
-gsutil ls | sed -nr 's/^gs:\/\/(.*-td2bq)\/$/\1/p'
+` gsutil ls | sed -nr 's/^gs:\/\/(.*-td2bq)\/$/\1/p' `
 
 ### BigQuery dataset
-bq ls | grep "td2bq"
+` bq ls | grep "td2bq" `
 
 ### Teradata Migration Service Account
-gcloud iam service-accounts list --format="value(email)" | grep "td2bq"
+` gcloud iam service-accounts list --format="value(email)" | grep "td2bq" `
 
 To create the BigQuery Data Transfer Service config, navigate to BigQuery in the Google Cloud Console and click Transfers:
 
@@ -368,7 +369,8 @@ Semicolon delimited list of qualified table names: lineitem;orders
 
 Use of a wildcard: *
 
-Initialize the BigQuery Data Transfer Service agent
+## Initialize the BigQuery Data Transfer Service agent
+
 In this section you will download and then initialize the transfer agent that will be used to automate the movement of data between Teradata and BigQuery. The agent is part of the BigQuery Data Transfer Service.
 
 In order to migrate the schema and data to BigQuery, you must create a credentials file and then initialize the migration agent installed on the Teradata machine.
@@ -378,7 +380,7 @@ Open the Teradata SSH window.
 To install the Java Runtime Environment (JRE) enter the following in the SSH window:
 
 ### Install Java
-sudo apt-get install -y openjdk-8-jre-headless
+` sudo apt-get install -y openjdk-8-jre-headless `
 
 The automated setup script created a directory, called /home/agentbase and saved the Teradata JDBC drivers in there as part of the preparation process. In your own environment you would download and unpack these files on the machine where you plan to install the transfer agent yourself.
 
@@ -392,12 +394,12 @@ https://storage.googleapis.com/data_transfer_agent/latest/mirroring-agent.jar
 Copy the transfer agent *.jar and JDBC driver files from the staging directory to your home directory. This copies the transfer agent you just downloaded and the extracted files from the Teradata JDBC driver files that you saved at the start of the lab.
 
 ### Copy the *.jar files to your home directory
-cp /home/agentbase/*.jar ~
+` cp /home/agentbase/*.jar ~ `
 
 Make a note of the Teradata VM IP address. You will need this to identify the Teradata instance during the Agent configuration.
 
 ### Take note of the Teradata VM IP
-sudo virsh net-dhcp-leases default | sed -n 3p | awk '{print $5}' | cut -f1 -d/
+` sudo virsh net-dhcp-leases default | sed -n 3p | awk '{print $5}' | cut -f1 -d/ `
 
 
 Create a new credentials file for the transfer agent using the nano editor.
@@ -413,7 +415,7 @@ Press CTRL+X then Y to save the credentials file.
 Initialize the transfer agent.
 
 ### Initialise the agent
-java -cp ~/mirroring-agent.jar com.google.cloud.bigquery.dms.Agent --initialize
+` java -cp ~/mirroring-agent.jar com.google.cloud.bigquery.dms.Agent --initialize `
 
 
 For the subsequent prompts enter the following values:
@@ -430,7 +432,7 @@ Enter configuration file path:	config
 Check the configuration file details:
 
 ### cat the config file
-cat config
+` cat config `
 
 
 Migrate the schema and data
@@ -438,8 +440,8 @@ Now that the transfer agent has been installed and initialized you must run it t
 
 To start the data transfer agent enter the following the the SSH window.
 
-# Run the agent in the background
-java -cp mirroring-agent.jar:tdgssconfig.jar:terajdbc4.jar com.google.cloud.bigquery.dms.Agent --configuration-file=config
+### Run the agent in the background
+` java -cp mirroring-agent.jar:tdgssconfig.jar:terajdbc4.jar com.google.cloud.bigquery.dms.Agent --configuration-file=config `
 
 Note: If you get config file errors here then manually edit the config file and check that the transfer config ID is correct.
 Note: Within a minute or two you should see a message from the Agent stating that databases have been listed in the database and you should see corresponding event log data appear in the BigQuery UI in the Run History tab for the transfer indicating that tables have been matched.
@@ -481,7 +483,7 @@ Click Run.
 
 Compare with the previous results from the same query in Teradata:
 
-Teradata to BigQuery SQL query translation
+## Teradata to BigQuery SQL query translation
 After data has been migrated, customers will begin to migrate existing queries and scripts to BigQuery. This stage typically takes up the bulk of the migration because of the effort needed to convert scripts between SQL dialects and the customer's usage of Teradata proprietary SQL functions.
 
 Value: BigQuery is fully compliant with the SQL 2011 standard, which makes it easy for SQL practitioners to apply their skills when migrating legacy queries.
@@ -494,24 +496,24 @@ You may also use this guide in your future customer engagements.
 
 In order to compare the results between Teradata and BigQuery, you will utilise Teradata's BTEQ command-line tool to execute queries against the source environment for result verification.
 
-The QUALIFY clause
+### The QUALIFY clause
 Teradata's QUALIFY is a conditional clause in the SELECT statement that filters results of a previously computed ordered analytical function according to user‑specified search conditions. Teradata customers very commonly use this function as a shorthand way to RANK and return results without the need for an additional subquery.
 
-Run the query in Teradata
+## Run the query in Teradata
 Follow these steps to use the query shown below to return information about the last purchase made by a customer.
 
 Switch back to the Teradata compute instance SSH window.
 
 Store the IP address of the nested Teradata QEMU VM in an environment variable. This is the QEMU virtual machine where the Teradata data warehouse is actually running.
 
-# Get the Teradata VM IP
-TERA_IP=$(sudo virsh net-dhcp-leases default | sed -n 3p | awk '{print $5}' | cut -f1 -d/)
+### Get the Teradata VM IP
+` TERA_IP=$(sudo virsh net-dhcp-leases default | sed -n 3p | awk '{print $5}' | cut -f1 -d/) `
 
 
 In the ssh session on Teradata machine launch BTEQ and logon to Teradata:
 
-# Use the BTEQ query utility
-bteq .LOGON $TERA_IP/dbc,dbc
+### Use the BTEQ query utility
+` bteq .LOGON $TERA_IP/dbc,dbc `
 
 
 Then enter the following SQL:
@@ -541,7 +543,7 @@ WHERE
 ORDER BY
   orders.O_CUSTKEY;
   
-  Translate the query to BigQuery
+ ### Translate the query to BigQuery
 There are two changes applied to this query to translate it:
 
 The QUALIFY clause is translated by adding a WHERE condition containing the analytics value to the enclosing query.
@@ -582,14 +584,14 @@ Run the query in Teradata
 Switch back to the BTEQ session in the Teradata SSH Window.
 If you aren't already connected to BTEQ, follow the instructions in the previous section, The QUALIFY clause, to reconnect BTEQ to the Teradata data warehouse.
 
-Enter the following SQL in the BTEQ session:
+### Enter the following SQL in the BTEQ session:
 
 SELECT TOP 100 TRIM(LEADING FROM P_PARTKEY||' - '||P_NAME) AS part
 FROM tpch.part
 WHERE P_NAME LIKE ANY ('a%','w%','h%')
 ORDER BY part;
 
-Translate the query in BigQuery
+## Translate the query in BigQuery
 There are three changes applied to this query to translate it:
 
 The string concatenation operator in Teradata is ||. In standard SQL, this is expressed with the CONCAT() function.

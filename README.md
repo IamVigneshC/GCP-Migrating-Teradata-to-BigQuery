@@ -6,19 +6,19 @@ Create a Teradata source system running on a Compute Engine instance  Prepare th
 Enable the required Cloud APIs
 The following APIs are required for the demo: Compute Engine, Cloud Storage, Cloud Storage JSON, Pub/Sub, BigQuery, BigQuery Data Transfer Service, and Cloud Build. 
 
-# Check which APIs are enabled for the project
+### Check which APIs are enabled for the project
 gcloud services list --enabled
 
-# Enable the following APIs:
+### Enable the following APIs:
 
-# Required for the data transfer service
+### Required for the data transfer service
 gcloud services enable bigquery-json.googleapis.com
 gcloud services enable storage-api.googleapis.com
 gcloud services enable storage-component.googleapis.com
 gcloud services enable pubsub.googleapis.com
 gcloud services enable bigquerydatatransfer.googleapis.com
 
-# Required to run Teradata on a GCE instance
+### Required to run Teradata on a GCE instance
 gcloud services enable compute.googleapis.com
 
 Create a service account for the BigQuery Data Transfer Service
@@ -26,34 +26,34 @@ This service account will be used to configure the transfer service and also to 
 
 Using Cloud Shell:
 
-# Set the PROJECT variable
+### Set the PROJECT variable
 export PROJECT=$(gcloud config get-value project)
 
-# Create a service account
+### Create a service account
 gcloud iam service-accounts create td2bq-transfer
 
 You now grant BigQuery Google Cloud Storage administration permissions to the Teradata to BigQuery service account so that it can access the services that are required for the migration tasks.
 
 To create an environment variable to hold the Teradata to BigQuery migration Service Account enter the following in Cloud Shell:
 
-# Set the TD2BQ_SVC_ACCOUNT = service account email
+### Set the TD2BQ_SVC_ACCOUNT = service account email
 export TD2BQ_SVC_ACCOUNT=`gcloud iam service-accounts list \
   --filter td2bq-transfer --format json | jq -r '.[].email'`
 To bind the migration service account to the BigQuery admin role enter the following in Cloud Shell:
 
-# Bind the service account to the BigQuery Admin role
+### Bind the service account to the BigQuery Admin role
 gcloud projects add-iam-policy-binding ${PROJECT} \
   --member serviceAccount:${TD2BQ_SVC_ACCOUNT} \
   --role roles/bigquery.admin
 To bind the migration service account to the Cloud Storage admin role enter the following in Cloud Shell:
 
-# Bind the service account to the Storage Admin role
+### Bind the service account to the Storage Admin role
 gcloud projects add-iam-policy-binding ${PROJECT} \
   --member serviceAccount:${TD2BQ_SVC_ACCOUNT} \
   --role roles/storage.admin
 To bind the migration service account to the PubSub admin role enter the following in Cloud Shell:
 
-# Bind the service account to the Pub/Sub Admin role
+### Bind the service account to the Pub/Sub Admin role
 gcloud projects add-iam-policy-binding ${PROJECT} \
   --member serviceAccount:${TD2BQ_SVC_ACCOUNT} \
   --role roles/pubsub.admin
@@ -76,7 +76,7 @@ Nested virtualization can only be enabled for Compute Engine VMs running on Hasw
 
 To create an Ubuntu boot disk enter the following in Cloud Shell:
 
-# Create UBUNTU boot disk
+### Create UBUNTU boot disk
 gcloud compute disks create ubuntu-disk \
    --type=pd-ssd \
    --size=300GB \
@@ -90,7 +90,7 @@ In order to run a nested hypervisor you must create an image from the boot disk 
 
 To create an image with nested hypervisor support enter the following in Cloud Shell:
 
-# Create image with VMX enabled
+### Create image with VMX enabled
 gcloud compute images create vmx-enabled-image \
   --source-disk ubuntu-disk --source-disk-zone us-central1-c \
   --licenses "https://www.googleapis.com/compute/v1/projects/vm-options/global/licenses/enable-vmx"
@@ -101,7 +101,7 @@ b7ffd7cb6cb0437a.png
 
 To create the Compute Engine VM instance from the image enter the following in Cloud Shell:
 
-# Create Compute Engine virtual machine from image
+### Create Compute Engine virtual machine from image
 gcloud compute instances create teradata \
   --zone=us-central1-c \
   --machine-type=n1-standard-4 \

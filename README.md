@@ -3,23 +3,33 @@ Create a Teradata source system running on a Compute Engine instance  Prepare th
 
 ## Creating the Teradata VM and downloading Teradata Express
 
-Enable the required Cloud APIs
+Enable the required Cloud APIs:
+
 The following APIs are required for the demo: Compute Engine, Cloud Storage, Cloud Storage JSON, Pub/Sub, BigQuery, BigQuery Data Transfer Service, and Cloud Build. 
 
 ### Check which APIs are enabled for the project
-gcloud services list --enabled
+`gcloud services list --enabled`
+
 
 ### Enable the following APIs:
 
+
 ### Required for the data transfer service
+
 gcloud services enable bigquery-json.googleapis.com
+
 gcloud services enable storage-api.googleapis.com
+
 gcloud services enable storage-component.googleapis.com
+
 gcloud services enable pubsub.googleapis.com
+
 gcloud services enable bigquerydatatransfer.googleapis.com
 
+
+
 ### Required to run Teradata on a GCE instance
-gcloud services enable compute.googleapis.com
+`gcloud services enable compute.googleapis.com`
 
 Create a service account for the BigQuery Data Transfer Service
 This service account will be used to configure the transfer service and also to run the Teradata Compute Engine instance.
@@ -27,30 +37,36 @@ This service account will be used to configure the transfer service and also to 
 Using Cloud Shell:
 
 ### Set the PROJECT variable
-export PROJECT=$(gcloud config get-value project)
+`export PROJECT=$(gcloud config get-value project)`
 
 ### Create a service account
-gcloud iam service-accounts create td2bq-transfer
+`gcloud iam service-accounts create td2bq-transfer`
 
 You now grant BigQuery Google Cloud Storage administration permissions to the Teradata to BigQuery service account so that it can access the services that are required for the migration tasks.
 
 To create an environment variable to hold the Teradata to BigQuery migration Service Account enter the following in Cloud Shell:
 
 ### Set the TD2BQ_SVC_ACCOUNT = service account email
+
 export TD2BQ_SVC_ACCOUNT=`gcloud iam service-accounts list \
   --filter td2bq-transfer --format json | jq -r '.[].email'`
+  
 To bind the migration service account to the BigQuery admin role enter the following in Cloud Shell:
 
 ### Bind the service account to the BigQuery Admin role
 gcloud projects add-iam-policy-binding ${PROJECT} \
   --member serviceAccount:${TD2BQ_SVC_ACCOUNT} \
   --role roles/bigquery.admin
+  
+  
 To bind the migration service account to the Cloud Storage admin role enter the following in Cloud Shell:
 
 ### Bind the service account to the Storage Admin role
 gcloud projects add-iam-policy-binding ${PROJECT} \
   --member serviceAccount:${TD2BQ_SVC_ACCOUNT} \
   --role roles/storage.admin
+  
+  
 To bind the migration service account to the PubSub admin role enter the following in Cloud Shell:
 
 ### Bind the service account to the Pub/Sub Admin role
@@ -95,9 +111,6 @@ gcloud compute images create vmx-enabled-image \
   --source-disk ubuntu-disk --source-disk-zone us-central1-c \
   --licenses "https://www.googleapis.com/compute/v1/projects/vm-options/global/licenses/enable-vmx"
 
-The output will be similar to the following:
-
-b7ffd7cb6cb0437a.png
 
 To create the Compute Engine VM instance from the image enter the following in Cloud Shell:
 
@@ -114,7 +127,7 @@ gcloud compute instances create teradata \
   
   ## Configure the Teradata Compute Engine VM
   
-  accept the licensing to allow you to download the Teradata Express VM image, Teradata tools, and JDBC drivers from Teradata's support site. You download these directly to the Teradata VM once you have accepted the licenses as this allows the downloads to be substantially faster.
+Accept the licensing to allow you to download the Teradata Express VM image, Teradata tools, and JDBC drivers from Teradata's support site. You download these directly to the Teradata VM once you have accepted the licenses as this allows the downloads to be substantially faster.
 
 Navigate to Compute Engine > VM Instances using the Navigation menu in the top left of the console page. In the list of VM instances you will see the teradata instance.
 Click the SSH link in the Connect column for the teradata instance.
@@ -144,7 +157,7 @@ Switch to the SSH window for the Teradata compute instance.
 
 Enter the following command, replacing DOWNLOAD-URL with the full URL you copied in step 7, in the SSH window:
 
-curl -o ~/TeradataToolsAndUtilitiesBase__ubuntu_indep.tar.gz "DOWNLOAD-URL"
+` curl -o ~/TeradataToolsAndUtilitiesBase__ubuntu_indep.tar.gz "DOWNLOAD-URL" `
 
 repeat the exercise for the VM image and the Java drivers for the migration agent. Those files are somewhat bigger but all of the downloads should complete in a minute or two at most.
 
@@ -174,7 +187,8 @@ Switch to the SSH window for the Teradata compute instance.
 
 Enter the following command, replacing DOWNLOAD-URL with the full URL you copied in step 7, in the SSH window:
 
-curl -o ~/TDExpress16.10_Sles11_40GB.7z "DOWNLOAD-URL"
+` curl -o ~/TDExpress16.10_Sles11_40GB.7z "DOWNLOAD-URL" `
+
 Wait for the download to complete. As this is a 40GB file it will take longer than the first file but it should still complete in under two minutes.
 
 Return to your Teradata download tab in your browser and cancel the download.
@@ -198,7 +212,8 @@ Switch to the SSH window for the Teradata compute instance.
 
 Enter the following command, replacing DOWNLOAD-URL with the full URL you copied in step 7, in the SSH window:
 
-curl -o ~/TeraJDBC__indep_indep.16.10.00.07.zip "DOWNLOAD-URL"
+` curl -o ~/TeraJDBC__indep_indep.16.10.00.07.zip "DOWNLOAD-URL" `
+
 Wait for the download to complete. As this is a 4 GB file it will take longer than the first file but it should still complete in under two minutes.
 
 Return to your Teradata download tab in your browser and cancel the download.
@@ -217,7 +232,6 @@ sudo cp /root/configure-teradata-vm.sh .
 Note:
 This process will take at least 30 minutes to complete. You must leave this SSH session open with the script running until it completes.
 
-Stop at this point and wait for your instructor to tell you when to resume the lab.
 
 When the script has completed you will see the final logoff notice and the message Fastload Terminated in the SSH window.
 
